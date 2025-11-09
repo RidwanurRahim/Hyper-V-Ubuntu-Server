@@ -100,7 +100,7 @@ ping google.com
 ```
 
 
-🔧 6. Install Laravel Stack
+## 🔧 6. Install Laravel Stack
 Update & Install Dependencies
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -109,7 +109,7 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y nginx mysql-server php php-fpm php-mysql php-xml php-mbstring php-bcmath php-zip php-curl git unzip composer
 ```
 
-📦 7. Deploy Laravel App
+## 📦 7. Deploy Laravel App
 ```bash
 cd /var/www/html/
 sudo git clone https://github.com/your-repo/your-laravel-app.git app
@@ -131,7 +131,7 @@ DB_USERNAME=laravel
 DB_PASSWORD=secret
 ```
 
-⚙️ 8. Configure Nginx
+## ⚙️ 8. Configure Nginx
 
 Create a site config:
 
@@ -140,7 +140,7 @@ sudo nano /etc/nginx/sites-available/laravel
 sudo nano /etc/nginx/sites-available/{project name}
 ```
 
-🅰️ Without Domain (Access via IP)
+### 🅰️ Without Domain (Access via IP)
 ```bash
 server {
     listen 80;
@@ -171,8 +171,8 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-🔐 9. Add SSL
-🅰️ Option 1: Self-Signed SSL (No Domain)
+## 🔐 9. Add SSL
+### 🅰️ Option 1: Self-Signed SSL (No Domain)
 ```bash
 sudo mkdir /etc/nginx/ssl
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -217,7 +217,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-🅱️ Option 2: Let’s Encrypt SSL (With Domain)
+### 🅱️ Option 2: Let’s Encrypt SSL (With Domain)
 Prerequisite
 
 A domain name pointing to your VM’s public IP
@@ -251,20 +251,20 @@ sudo certbot renew --dry-run
 
 Now your site is live at https://yourdomain.com 🔒
 
-🔒 10. Set Permissions
+## 🔒 10. Set Permissions
 ```bash
 sudo chown -R www-data:www-data /var/www/html/app
 sudo chmod -R 775 /var/www/app/storage /var/www/html/app/bootstrap/cache
 ```
 
-🧰 11. Enable Firewall
+## 🧰 11. Enable Firewall
 ```bash
 sudo ufw allow OpenSSH
 sudo ufw allow 'Nginx Full'
 sudo ufw enable
 ```
 
-🔁 12. (Optional) Queue Worker with Supervisor
+## 🔁 12. (Optional) Queue Worker with Supervisor
 ```bash
 sudo apt install supervisor -y
 sudo nano /etc/supervisor/conf.d/laravel-worker.conf
