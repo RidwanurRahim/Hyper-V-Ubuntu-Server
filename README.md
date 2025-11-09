@@ -303,3 +303,150 @@ sudo supervisorctl reread
 sudo supervisorctl update
 sudo supervisorctl start laravel-worker:*
 ```
+## 🧱 1. Check MySQL service status
+sudo systemctl status mysql
+
+If you see:
+
+Active: active (running)
+
+
+then MySQL is running fine.
+
+If not, start it:
+```bash
+sudo systemctl start mysql
+```
+
+And enable on boot:
+```bash
+sudo systemctl enable mysql
+```bash
+
+## 🧠 2. Access MySQL as root
+
+Ubuntu uses Unix socket authentication for the root MySQL user (no password needed). Run:
+```bash
+sudo mysql
+```
+
+## 🔐 3. (Optional but Recommended) Secure MySQL installation Run:
+```bash
+sudo mysql_secure_installation
+```
+
+## 👤 4. Create a normal MySQL user for your Laravel app
+
+Inside MySQL shell (sudo mysql):
+```bash
+CREATE DATABASE laravel;
+CREATE USER 'laravel'@'localhost' IDENTIFIED BY 'StrongPassword123';
+GRANT ALL PRIVILEGES ON laravel.* TO 'laravel'@'localhost';
+FLUSH PRIVILEGES;
+exit;
+```
+
+## 🧰 6. (Optional) Change root to use password login (not socket)
+
+If you want to log in as root using mysql -u root -p instead of sudo mysql, run this inside MySQL shell:
+```bash
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'YourStrongPassword';
+FLUSH PRIVILEGES;
+```
+
+🧱 1. Install phpMyAdmin
+sudo apt update
+sudo apt install phpmyadmin -y
+
+
+🌐 2. Verify phpMyAdmin Nginx configuration
+
+Check your Nginx config file:
+
+sudo nano /etc/nginx/sites-available/phpmyadmin
+
+
+Make sure it looks like this (serving on port 85):
+
+server {
+    listen 85;
+    server_name _;
+
+    root /usr/share/phpmyadmin;
+    index index.php index.html index.htm;
+
+    access_log /var/log/nginx/phpmyadmin_access.log;
+    error_log /var/log/nginx/phpmyadmin_error.log;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+
+Then test and reload Nginx:
+
+sudo nginx -t
+sudo systemctl reload nginx
+
+
+Now visit:
+
+http://<your-server-ip>:85
+
+
+Example:
+
+http://192.168.1.250:85
+
+
+✅ You should see the phpMyAdmin login page.
+
+
+2️⃣ Stop & remove Apache (if installed)
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+sudo apt purge apache2 -y
+sudo apt autoremove -y
+
+3️⃣ Remove any conflicting phpMyAdmin Apache configs
+
+Check if a symlink exists:
+
+ls /etc/apache2/conf-enabled/
+
+
+If you see phpmyadmin.conf, remove it:
+
+sudo rm /etc/apache2/conf-enabled/phpmyadmin.conf
+
+4️⃣ Check Nginx config
+
+Test all configs for syntax errors:
+
+sudo nginx -t
+
+
+If it says OK, proceed
+
+5️⃣ Enable site & restart Nginx
+sudo ln -sf /etc/nginx/sites-available/phpmyadmin /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl status nginx
+
+
+✅ It should now show active (running)
+
+6️⃣ Open firewall
+sudo ufw allow 85/tcp
+sudo ufw reload
