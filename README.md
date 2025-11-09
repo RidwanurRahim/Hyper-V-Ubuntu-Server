@@ -110,6 +110,19 @@ sudo apt install -y nginx mysql-server php php-fpm php-mysql php-xml php-mbstrin
 ```
 
 ## 📦 7. Deploy Laravel App
+### 🛠️ 3. Fix permissions
+
+#### Option A — Temporarily use sudo:
+```bash
+sudo git clone https://eatlbd.net/edutube/edutube-ims-backend.git
+```
+
+#### Option B — Give ownership to your user permanently:
+```bash
+sudo chown -R $USER:$USER /var/www/html
+cd /var/www/html
+```
+#### Choose Option A with Deployment Steps:
 ```bash
 cd /var/www/html/
 sudo git clone https://github.com/your-repo/your-laravel-app.git app
