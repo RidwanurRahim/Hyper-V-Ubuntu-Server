@@ -277,32 +277,95 @@ sudo ufw allow 'Nginx Full'
 sudo ufw enable
 ```
 
-## 🔁 12. (Optional) Queue Worker with Supervisor
+## 12. Configure Supervisor
+Install supervisor
 ```bash
 sudo apt install supervisor -y
-sudo nano /etc/supervisor/conf.d/laravel-worker.conf
+```
+
+### A. Queue Worker with Supervisor
+```bash
+sudo nano /etc/supervisor/conf.d/app-queue-worker.conf
 ```
 
 Example:
 ```bash
-[program:laravel-worker]
+[program:app-queue-worker.conf]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/html/app/artisan queue:work --sleep=3 --tries=3
+directory=/var/www/html/app
+command=php artisan queue:work --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=8
+redirect_stderr=true
+stdout_logfile=/var/log/app-queue-worker.log
+stopwaitsecs=3600
+```
+
+### B. Schedule Worker with Supervisor
+
+```bash
+sudo nano /etc/supervisor/conf.d/app-schedule-worker.conf
+```
+
+```bash
+[program:app-schedule-worker]
+directory=/var/www/html/app
+command=php artisan schedule:work
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
 user=www-data
 numprocs=1
 redirect_stderr=true
-stdout_logfile=/var/www/html/app/storage/logs/worker.log
+stdout_logfile=/var/log/app-schedule-worker.log
+stopwaitsecs=3600
 ```
 
-Apply:
+### C. Apply any changes and manage Supervisor Worker:
+
+To apply any Supervisor changes
 
 ```bash
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl start laravel-worker:*
 ```
+
+To start a new worker
+
+```bash
+sudo supervisorctl start app-queue-worker:*
+or
+sudo supervisorctl start app-schedule-worker:*
+```
+
+To restart a worker
+
+```bash
+sudo supervisorctl restart app-queue-worker:*
+or
+sudo supervisorctl restart app-schedule-worker:*
+
+```
+
+To stop a worker
+
+```bash
+sudo supervisorctl stop app-queue-worker:*
+or
+sudo supervisorctl stop app-schedule-worker:*
+```
+
+To view status of Supervisor
+
+```bash
+sudo supervisorctl status
+```
+
 ## 🧱 1. Check MySQL service status
 sudo systemctl status mysql
 
