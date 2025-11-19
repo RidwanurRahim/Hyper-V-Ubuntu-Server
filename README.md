@@ -154,12 +154,23 @@ sudo nano /etc/nginx/sites-available/{project name}
 ```
 
 ### 🅰️ Without Domain (Access via IP)
+
 ```bash
 server {
-    listen 80;
+    listen 82;
     server_name _;
+
     root /var/www/html/app/public;
-    index index.php index.html;
+    index index.php index.html index.htm index.nginx-debian.html;
+
+##    add_header X-Frame-Options "SAMEORIGIN";
+##    add_header X-Content-Type-Options "nosniff";
+
+    client_max_body_size 25M;
+
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;
@@ -167,13 +178,106 @@ server {
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+##        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+##        include fastcgi_params;
     }
 
     location ~ /\.ht {
         deny all;
     }
 }
+```
+For Advanced
+
+```bash
+server {
+    listen 80;
+    server_name your-domain.com 192.168.1.200;   # add IPs / hostnames you serve
+
+    root /var/www/html/your-app/public;
+    index index.php index.html;
+
+    # Security & performance headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate" always;
+
+    # Global limits (apply to whole server block)
+    client_max_body_size 25M;
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    # gzip (do not change colors unless testing)
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 256;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Static assets — let Nginx serve them directly
+    location ~* \.(?:css|js|jpg|jpeg|gif|png|ico|svg|woff2?|ttf|eot)$ {
+        try_files $uri =404;
+        expires 7d;
+        access_log off;
+        add_header Cache-Control "public";
+    }
+
+    # Laravel front controller
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP-FPM via FastCGI
+    location ~ \.php$ {
+        # security: do not allow direct access outside root
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        include fastcgi_params;
+
+        # Use realpath_root (resolves symlinks)
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+
+        # Socket - adjust for your php version
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+
+        fastcgi_index index.php;
+
+        # FastCGI tuning (prevents 502/504 and header-too-large)
+        fastcgi_read_timeout 300;
+        fastcgi_send_timeout 300;
+        fastcgi_buffer_size 32k;
+        fastcgi_buffers 8 16k;
+        fastcgi_busy_buffers_size 64k;
+        fastcgi_temp_file_write_size 64k;
+
+        # Security
+        internal;        # optional: make .php handling internal if you want extra protection
+    }
+
+    # Deny access to hidden files and .env
+    location ~ /\.(?!well-known).* {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Optional: health check endpoint
+    location /healthz {
+        access_log off;
+        return 200 'OK';
+        add_header Content-Type text/plain;
+    }
+
+    access_log /var/log/nginx/your-app.access.log;
+    error_log /var/log/nginx/your-app.error.log warn;
+}
+
 ```
 
 Enable & reload:
