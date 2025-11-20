@@ -470,7 +470,13 @@ To view status of Supervisor
 sudo supervisorctl status
 ```
 
-## 🧱 1. Configure MySQL
+## 🧱 13. Configure MySQL
+### 1️⃣ Installation & Status check
+
+Inatall package
+```bash
+sudo apt install -y mysql-server php-mysql
+```
 
 To view the current status:
 ```bash
@@ -485,21 +491,21 @@ sudo systemctl start mysql
 And enable on boot:
 ```bash
 sudo systemctl enable mysql
-```bash
+```
 
-## 🧠 2. Access MySQL as root
+### 2️⃣ Access MySQL as root
 
 Ubuntu uses Unix socket authentication for the root MySQL user (no password needed). Run:
 ```bash
 sudo mysql
 ```
 
-## 🔐 3. (Optional but Recommended) Secure MySQL installation Run:
+### 3️⃣ (Optional but Recommended) Secure MySQL installation Run:
 ```bash
 sudo mysql_secure_installation
 ```
 
-## 👤 4. Create a normal MySQL user for your Laravel app
+### 4️⃣ Create a normal MySQL user for your app
 
 Inside MySQL shell (sudo mysql):
 ```bash
@@ -510,7 +516,12 @@ FLUSH PRIVILEGES;
 exit;
 ```
 
-## 🧰 6. (Optional) Change root to use password login (not socket)
+### 5️⃣ Test login with that user
+```bash
+mysql -u laravel -p
+```
+
+### 6️⃣ (Optional) Change root to use password login (not socket)
 
 If you want to log in as root using mysql -u root -p instead of sudo mysql, run this inside MySQL shell:
 ```bash
@@ -518,7 +529,7 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'YourStro
 FLUSH PRIVILEGES;
 ```
 
-## 🧱 1. Configure phpMyAdmin 🌐
+## 🧱 14. Configure phpMyAdmin 🌐
 
 ### 1️⃣ Install phpMyAdmin
 ```bash
