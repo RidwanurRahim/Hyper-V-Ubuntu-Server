@@ -470,17 +470,14 @@ To view status of Supervisor
 sudo supervisorctl status
 ```
 
-## 🧱 1. Check MySQL service status
+## 🧱 1. Configure MySQL
+
+To view the current status:
+```bash
 sudo systemctl status mysql
+```
 
-If you see:
-
-Active: active (running)
-
-
-then MySQL is running fine.
-
-If not, start it:
+To start the service:
 ```bash
 sudo systemctl start mysql
 ```
@@ -521,20 +518,42 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'YourStro
 FLUSH PRIVILEGES;
 ```
 
-🧱 1. Install phpMyAdmin
-sudo apt update
+## 🧱 1. Configure phpMyAdmin 🌐
+
+### 1️⃣ Install phpMyAdmin
+```bash
 sudo apt install phpmyadmin -y
+```
 
+### 2️⃣ Stop & remove Apache (if installed)
+```bash
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+sudo apt purge apache2 -y
+sudo apt autoremove -y
+```
 
-🌐 2. Verify phpMyAdmin Nginx configuration
+### 3️⃣ Remove any conflicting phpMyAdmin Apache configs
+
+Check if a symlink exists:
+```bash
+ls /etc/apache2/conf-enabled/
+```
+
+If you see phpmyadmin.conf, remove it:
+
+```bash
+sudo rm /etc/apache2/conf-enabled/phpmyadmin.conf
+```
+
+### 4️⃣ Check & Verify Nginx config
 
 Check your Nginx config file:
-
+```bash
 sudo nano /etc/nginx/sites-available/phpmyadmin
+```
 
-
-Make sure it looks like this (serving on port 85):
-
+```bash
 server {
     listen 85;
     server_name _;
@@ -551,69 +570,27 @@ server {
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
     }
 
     location ~ /\.ht {
         deny all;
     }
 }
+```
 
-
-Then test and reload Nginx:
-
-sudo nginx -t
-sudo systemctl reload nginx
-
-
-Now visit:
-
-http://<your-server-ip>:85
-
-
-Example:
-
-http://192.168.1.250:85
-
-
-✅ You should see the phpMyAdmin login page.
-
-
-2️⃣ Stop & remove Apache (if installed)
-sudo systemctl stop apache2
-sudo systemctl disable apache2
-sudo apt purge apache2 -y
-sudo apt autoremove -y
-
-3️⃣ Remove any conflicting phpMyAdmin Apache configs
-
-Check if a symlink exists:
-
-ls /etc/apache2/conf-enabled/
-
-
-If you see phpmyadmin.conf, remove it:
-
-sudo rm /etc/apache2/conf-enabled/phpmyadmin.conf
-
-4️⃣ Check Nginx config
-
-Test all configs for syntax errors:
-
-sudo nginx -t
-
-
-If it says OK, proceed
-
-5️⃣ Enable site & restart Nginx
+### 5️⃣ Enable site, test & reload Nginx
+```bash
 sudo ln -sf /etc/nginx/sites-available/phpmyadmin /etc/nginx/sites-enabled/
 sudo nginx -t
+sudo systemctl reload nginx
+or
 sudo systemctl restart nginx
 sudo systemctl status nginx
+```
 
-
-✅ It should now show active (running)
-
-6️⃣ Open firewall
+### 6️⃣ Open firewall
+```bash
 sudo ufw allow 85/tcp
 sudo ufw reload
+```
