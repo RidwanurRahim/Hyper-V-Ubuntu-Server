@@ -606,3 +606,108 @@ sudo systemctl status nginx
 sudo ufw allow 85/tcp
 sudo ufw reload
 ```
+## 🌐 15. Configure Redis
+### 1️⃣ Install Redis Server on Ubuntu
+
+Run:
+```bash
+sudo apt update
+sudo apt install redis-server -y
+```
+
+### 2️⃣ Enable Redis to run as a system service
+
+Check if Redis is running:
+```bash
+sudo systemctl status redis
+```
+
+If not running, start:
+```bash
+sudo systemctl start redis
+sudo systemctl enable redis
+```
+
+### 2️⃣ Configure Redis for production
+
+Edit redis.conf:
+```bash
+sudo nano /etc/redis/redis.conf
+```
+
+Make sure these are set:
+
+1. Turn on supervised mode:
+```bash
+supervised systemd
+```
+
+3. Bind only to localhost (secure):
+```bash
+bind 127.0.0.1
+```
+
+4. Protect with a password (recommended):
+
+Uncomment and set:
+```bash
+requirepass YOUR_STRONG_PASSWORD
+```
+
+Save and exit: CTRL + X → Y → Enter
+
+Restart Redis:
+
+sudo systemctl restart redis
+
+### 4️⃣ Verify Redis is working
+```bash
+redis-cli
+```
+
+Now authenticate (if password enabled):
+```bash
+AUTH YOUR_STRONG_PASSWORD
+```
+
+Test:
+```bash
+SET test "hello"
+GET test
+```
+
+If it prints "hello" → Redis is working.
+
+Exit:
+
+exit
+
+### 5️⃣ Setup Laravel to use Predis
+1. Install Predis PHP library
+In your Laravel project:
+```bash
+composer require predis/predis
+```
+2. Update .env
+
+Add:
+```bash
+REDIS_CLIENT=predis
+REDIS_PASSWORD=YOUR_STRONG_PASSWORD
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+```
+3. Clear Laravel cache
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan optimize:clear
+```
+### 6️⃣ Set cache & session drivers to Redis (optional)
+
+In .env:
+```bash
+CACHE_DRIVER=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+```
