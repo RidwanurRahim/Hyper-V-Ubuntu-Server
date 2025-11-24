@@ -394,7 +394,7 @@ sudo nano /etc/supervisor/conf.d/app-queue-worker.conf
 
 Example:
 ```bash
-[program:app-queue-worker.conf]
+[program:app-queue-worker]
 process_name=%(program_name)s_%(process_num)02d
 directory=/var/www/html/app
 command=php artisan queue:work --sleep=3 --tries=3 --max-time=3600
@@ -417,6 +417,7 @@ sudo nano /etc/supervisor/conf.d/app-schedule-worker.conf
 
 ```bash
 [program:app-schedule-worker]
+process_name=%(program_name)s_%(process_num)02d
 directory=/var/www/html/app
 command=php artisan schedule:work
 autostart=true
